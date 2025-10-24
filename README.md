@@ -1,73 +1,76 @@
-# React + TypeScript + Vite
+# File Uploader
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Thư viện tải tệp đơn giản được xây dựng bằng , **TypeScript**.
 
-Currently, two official plugins are available:
+[![Giấy phép](https://img.shields.io/badge/Giấy%20phép-MIT-yellow.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.x-orange.svg)](https://www.typescriptlang.org/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Mục lục
 
-## React Compiler
+- [Tổng quan](#tổng-quan)
+- [Tính năng](#tính-năng)
+- [Cài đặt](#cài-đặt)
+- [Sử dụng](#sử-dụng)
+- [Đóng góp](#đóng-góp)
+- [Giấy phép](#giấy-phép)
+- [Liên hệ](#liên-hệ)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tổng quan
 
-## Expanding the ESLint configuration
+**File Uploader** là một thư viện nhẹ, giúp hỗ trợ phát triển các tác vụ liên quan đến File. Dự án sử dụng:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **TypeScript** để đảm bảo an toàn kiểu dữ liệu.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Dự án bắt đầu từ template chính thức **TypeScript** và mở rộng với tính năng xử lý tệp bằng **HTML5 File API**.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tính năng
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Xác thực tệp**: Kiểm tra kích thước, loại tệp và số lượng.
+- **TypeScript**: Toàn bộ mã nguồn được định kiểu rõ ràng.
+
+## Cài đặt
+
+```bash
+  npm install @studib/file-uploader
+  //-- or --//
+  yarn add @studib/file-uploader
+  //-- or --//
+  pnpm install @studib/file-uploader
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Sử dụng
 
 ```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+import { FileUploaderUploader } from "@studib/file-uploader";
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+function App() {
+  const [preview, setPreview] = useState("");
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const processor = new FileProcessor();
+    processor.use(new ImagePreviewPlugin({ size: 150 }));
+
+    const result = await processor.process(file);
+    setPreview(result.metadata.thumbnailURL);
+  };
+
+  return (
+    <div>
+      <input type="file" accept="image/*" onChange={handleFile} />
+      {preview && <img src={preview} alt="Preview" />}
+    </div>
+  );
+}
 ```
+
+## Giấy phép
+
+Dự án được cấp phép theo MIT License. Xem chi tiết tại LICENSE.
+
+## Liên hệ
+
+Khoa Trần - [GitHub @KhoaTr197](https://github.com/KhoaTr197)
+Liên kết dự án: [File Uploader](https://github.com/KhoaTr197/file-uploader)

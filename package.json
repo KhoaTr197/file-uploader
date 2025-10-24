@@ -1,8 +1,8 @@
 {
-  "name": "@khoatr/file-uploader",
+  "name": "@studib/file-uploader",
+  "private": false,
   "description": "Một thư viện JS nhỏ hỗ trợ các tác vụ liên quan đến File",
   "version": "0.1.0",
-  "private": true,
   "author": "KhoaTr197",
   "license": "MIT",
   "keywords": [
@@ -13,14 +13,22 @@
     "proccesing",
     "plugin"
   ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/my-library.git"
+    "url": "https://github.com/KhoaTr197/file-uploader.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/my-library/issues"
+    "url": "https://github.com/KhoaTr197/file-uploader/issues"
   },
-  "homepage": "https://github.com/yourusername/my-library#readme",
+  "homepage": "https://github.com/KhoaTr197/file-uploader#readme",
   "type": "module",
   "main": "./dist/file-uploader.cjs.js",
   "module": "./dist/file-uploader.es.js",
@@ -30,11 +38,6 @@
       "require": "./dist/file-uploader.cjs.js"
     }
   },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
     "dev": "vite --config vite.demo.config.js",
     "build:lib": "vite build --config vite.config.js",
@@ -44,6 +47,7 @@
     "prepublishOnly": "npm run build:lib"
   },
   "dependencies": {
+    "@studib/file-uploader": "^0.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
