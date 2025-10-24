@@ -1,0 +1,64 @@
+{
+  "name": "@khoatr/file-uploader",
+  "description": "Một thư viện JS nhỏ hỗ trợ các tác vụ liên quan đến File",
+  "version": "0.1.0",
+  "private": true,
+  "author": "KhoaTr197",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "file",
+    "library",
+    "validator",
+    "proccesing",
+    "plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/my-library.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/my-library/issues"
+  },
+  "homepage": "https://github.com/yourusername/my-library#readme",
+  "type": "module",
+  "main": "./dist/file-uploader.cjs.js",
+  "module": "./dist/file-uploader.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/file-uploader.es.js",
+      "require": "./dist/file-uploader.cjs.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite --config vite.demo.config.js",
+    "build:lib": "vite build --config vite.config.js",
+    "build:demo": "vite build --config vite.demo.config.js",
+    "build": "npm run build:lib && npm run build:demo",
+    "preview": "vite preview --config vite.demo.config.js",
+    "prepublishOnly": "npm run build:lib"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.36.0",
+    "@types/node": "^24.6.0",
+    "@types/react": "^19.1.16",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9.36.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.22",
+    "globals": "^16.4.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.45.0",
+    "vite": "^7.1.7"
+  }
+}
