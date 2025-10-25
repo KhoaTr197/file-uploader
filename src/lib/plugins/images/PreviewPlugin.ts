@@ -1,38 +1,74 @@
 import type { IFileProcessorPlugin, ProcessedFile } from "../../core";
 
-export interface PreviewOptions {
-  /** Thumbnail max size (default: 200) */
+export interface PreviewConfig {
+  /** 
+   * Kích thước hình ảnh xem trước (px)
+   * * @default 200 (Width: 200px, Height: 200px)
+   */
   size?: number;
-  /** Quality 0-1 (default: 0.8) */
+  /**
+   * Chất lượng hình ảnh xem trước (từ 0.1 đến 1.0)
+   * @default 0.8
+   */
   quality?: number;
 }
 
+/**
+ * Plugin tạo ảnh xem trước (thumbnail) và thông tin kích thước cho file hình ảnh.
+ * 
+ * Plugin này sẽ:
+ * - Kiểm tra file có phải là hình ảnh không
+ * - Tạo thumbnail với kích thước tùy chỉnh, giữ nguyên tỷ lệ khung hình
+ * - Thêm metadata: kích thước ảnh, thumbnail blob, URL data của thumbnail và ảnh gốc
+ * 
+ * @implements {IFileProcessorPlugin}
+ */
 export class ImagePreviewPlugin implements IFileProcessorPlugin {
+  /** Tên plugin */
   name = 'image-preview';
-  version = "1.0.0";
-  private options: PreviewOptions = {}
 
-  constructor(options: PreviewOptions = {}) {
-    this.options = options;
+  /** Phiên bản plugin */
+  version = "1.0.0";
+
+  /** Cấu hình tùy chọn của plugin */
+  private options: Required<PreviewConfig>;
+
+  /**
+   * Khởi tạo plugin với các tùy chọn cấu hình
+   * 
+   * @param options - Cấu hình tùy chọn cho thumbnail
+   */
+  constructor(options: PreviewConfig = {}) {
+    this.options = {
+      size: 200,
+      quality: 0.8,
+      ...options
+    };
   }
 
+  /**
+   * Chạy sau khi file đã được xử lý xong.
+   * Tạo thumbnail và thêm thông tin kích thước vào metadata.
+   * 
+   * @param processed File đã được xử lý bởi các plugin trước
+   * @returns {Promise<ProcessedFile>} File với metadata được bổ sung
+   */
   async afterProcess(processed: ProcessedFile): Promise<ProcessedFile> {
-    // Skip non-images
+    // Skip những file nào không phải hình
     if (!processed.original.type.startsWith('image/')) {
       return processed;
     }
 
-    const size = this.options.size || 200;
-    const quality = this.options.quality || 0.8;
+    const size = this.options.size;
+    const quality = this.options.quality;
 
-    // Load image
+    // Load hình ảnh
     const img = await this.loadImage(processed.blob);
 
-    // Create thumbnail
+    // Tạo hình preview (thumbnail)
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
 
-    // Calculate size (maintain aspect ratio)
+    // Tính kích thước (giữ tỉ lệ)
     const ratio = img.width / img.height;
     if (img.width > img.height) {
       canvas.width = size;
@@ -42,29 +78,24 @@ export class ImagePreviewPlugin implements IFileProcessorPlugin {
       canvas.width = size * ratio;
     }
 
-    // Draw thumbnail
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    // Vẽ lên canvas
+    canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
 
     // Convert to blob and data URL
-    const thumbnail = await this.canvasToBlob(canvas, processed.original.type, quality);
-    const thumbnailURL = await this.blobToDataURL(thumbnail);
-    const fullURL = await this.blobToDataURL(processed.blob);
+    const previewURL = canvas.toDataURL('image/jpeg', quality);
 
     // Add preview to metadata
     return {
       ...processed,
       metadata: {
         ...processed.metadata,
-        width: img.width,
-        height: img.height,
-        thumbnail,
-        thumbnailURL,
-        previewURL: fullURL
+        previewWidth: img.width,
+        previewHeight: img.height,
+        previewURL
       }
     };
   }
-
-  // Helper: Load image from blob
+  // ------------ HELPER FUNCTION ------------
   private loadImage(blob: Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -74,27 +105,6 @@ export class ImagePreviewPlugin implements IFileProcessorPlugin {
       };
       img.onerror = reject;
       img.src = URL.createObjectURL(blob);
-    });
-  }
-
-  // Helper: Canvas to blob
-  private canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => blob ? resolve(blob) : reject(new Error('Failed')),
-        type,
-        quality
-      );
-    });
-  }
-
-  // Helper: Blob to data URL
-  private blobToDataURL(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
     });
   }
 }

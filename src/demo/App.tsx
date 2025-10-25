@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { FileProcessor } from '@lib/core/processor';
-import { ImagePreviewPlugin } from '@lib/plugins/images/PreviewPlugin';
+import { FileProcessor } from '@lib';
+import { ImagePreviewPlugin } from '@lib/plugins/images';
 
 function App() {
   const [preview, setPreview] = useState<string>('');
@@ -10,10 +10,11 @@ function App() {
     if (!file) return;
 
     const processor = new FileProcessor();
-    processor.use(new ImagePreviewPlugin({ size: 150 }));
+    processor.use(new ImagePreviewPlugin());
 
     const result = await processor.process(file);
-    setPreview(result.metadata.thumbnailURL);
+    console.log(result);
+    setPreview(result.metadata.previewURL);
   };
 
   return (
