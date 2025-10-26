@@ -1,4 +1,5 @@
-import type { FileProcessorConfig, IFileProcessor, IFileProcessorPlugin, PluginContext, ProcessedFile } from ".";
+import type { FileMetadata, FileProcessorConfig, IFileProcessor, IFileProcessorPlugin, PluginContext, ProcessedFile } from ".";
+import { utils } from "./utils";
 import { FileValidator } from "./validator";
 
 /**
@@ -92,6 +93,7 @@ export class FileProcessor implements IFileProcessor {
       const processed: ProcessedFile = {
         original: file,
         blob: processedBlob,
+        metadata: await this.extractMetadata(file)
       };
 
       // Hậu-xử lý
@@ -145,6 +147,45 @@ export class FileProcessor implements IFileProcessor {
     }
 
     return result;
+  }
+  /**
+ * Trích xuất metadata từ File.
+ * Tạo UUID duy nhất cho mỗi file và thu thập thông tin cơ bản.
+ * 
+ * @private
+ * @param {File} file - File cần trích xuất metadata
+ * @returns {Promise<FileMetadata>} Metadata của file
+ */
+  private async extractMetadata(file: File): Promise<FileMetadata> {
+    return {
+      // UUID duy nhất cho mỗi file
+      id: this.generateUUID(),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      extension: utils.getExtension(file.name),
+    };
+  }
+  /**
+   * Tạo UUID v4 (RFC 4122 compliant).
+   * Sử dụng crypto.randomUUID() nếu có, fallback về Math.random().
+   * 
+   * @private
+   * @returns {string} UUID string (ví dụ: "550e8400-e29b-41d4-a716-446655440000")
+   */
+  private generateUUID(): string {
+    // Nếu browser hỗ trợ crypto.randomUUID() (modern browsers)
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+
+    // Fallback: Tạo UUID v4 manually
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
   }
   private async handleError(error: Error, context: PluginContext): Promise<void> {
     for (const plugin of this.plugins) {

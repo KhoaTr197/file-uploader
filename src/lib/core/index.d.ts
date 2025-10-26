@@ -37,13 +37,57 @@ export interface FilesValidationResult {
   results: FileValidationResult[];
 }
 
+/** */
+export interface FileMetadata {
+  /**
+     * UUID duy nhất cho mỗi file
+     * @example "550e8400-e29b-41d4-a716-446655440000"
+     */
+  id: string;
+
+  /**
+   * Tên file gốc
+   * @example "photo.jpg"
+   */
+  name: string;
+
+  /**
+   * Kích thước file (bytes)
+   * @example 2048576 (2MB)
+   */
+  size: number;
+
+  /**
+   * MIME type của file
+   * @example "image/jpeg", "application/pdf"
+   */
+  type: string;
+
+  /**
+   * Extension của file (lowercase, không có dấu chấm)
+   * @example "jpg", "png", "pdf"
+   */
+  extension: string;
+
+  /**
+   * Timestamp khi file được modified lần cuối (từ File object)
+   * @example 1698765432000
+   */
+  lastModified: number;
+  /**
+   * Custom metadata do plugins thêm vào.
+   * Sử dụng index signature để cho phép plugins mở rộng metadata.
+   */
+  [key: string]: any;
+}
+
 /** File đã được xử lý */
 export interface ProcessedFile {
   /** File gốc từ input */
   original: File;
   /** Blob đã xử lý (có thể là file gốc hoặc đã biến đổi) */
   blob: Blob;
-  metadata?: any;
+  metadata: FileMetadata;
 }
 
 // Config types

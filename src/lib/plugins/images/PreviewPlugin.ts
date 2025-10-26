@@ -1,4 +1,4 @@
-import type { IFileProcessorPlugin, ProcessedFile } from "../../core";
+import type { FileMetadata, IFileProcessorPlugin, ProcessedFile } from "../../core";
 
 export interface PreviewConfig {
   /** 
@@ -11,6 +11,12 @@ export interface PreviewConfig {
    * @default 0.8
    */
   quality?: number;
+}
+
+export interface PreviewResultMetadata extends FileMetadata {
+  previewWidth: number;
+  previewHeight: number,
+  previewURL: string;
 }
 
 /**
@@ -28,7 +34,13 @@ export class ImagePreviewPlugin implements IFileProcessorPlugin {
   name = 'image-preview';
 
   /** Phiên bản plugin */
-  version = "1.0.0";
+  version = "1.1.0";
+
+  /** Lưu previews để dọn dẹp sau */
+  private previews: {
+    id: FileMetadata["id"];
+    canvas: HTMLCanvasElement;
+  }[]
 
   /** Cấu hình tùy chọn của plugin */
   private options: Required<PreviewConfig>;
@@ -44,6 +56,7 @@ export class ImagePreviewPlugin implements IFileProcessorPlugin {
       quality: 0.8,
       ...options
     };
+    this.previews = [];
   }
 
   /**
@@ -68,6 +81,12 @@ export class ImagePreviewPlugin implements IFileProcessorPlugin {
     // Tạo hình preview (thumbnail)
     const canvas = document.createElement('canvas');
 
+    // Lưu preview để cleanup sau
+    this.previews.push({
+      id: processed.metadata.id,
+      canvas
+    });
+
     // Tính kích thước (giữ tỉ lệ)
     const ratio = img.width / img.height;
     if (img.width > img.height) {
@@ -79,12 +98,14 @@ export class ImagePreviewPlugin implements IFileProcessorPlugin {
     }
 
     // Vẽ lên canvas
-    canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    // Convert to blob and data URL
+    // Chuyển sang data url
     const previewURL = canvas.toDataURL('image/jpeg', quality);
 
-    // Add preview to metadata
     return {
       ...processed,
       metadata: {
@@ -95,7 +116,53 @@ export class ImagePreviewPlugin implements IFileProcessorPlugin {
       }
     };
   }
+  /**
+   * Dọn dẹp tất cả preview đã tạo và giải phóng bộ nhớ.
+   * Gọi method này khi không cần preview nữa.
+   */
+  cleanup(): void {
+    this.previews.forEach(preview => {
+      const ctx = preview.canvas.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, preview.canvas.width, preview.canvas.height);
+      }
+
+      preview.canvas.width = 0;
+      preview.canvas.height = 0;
+    });
+
+    this.previews = [];
+  }
+  /**
+   * Xóa một preview cụ thể (nếu cần cleanup từng cái một).
+   * 
+   * @param index - Index của canvas cần xóa
+   */
+  cleanupPreview(id: FileMetadata["id"]): void {
+    const targetIdx = this.previews.findIndex(preview => preview.id === id);
+    if (!this.previews[targetIdx]) {
+      console.error("Không tồn tại Preview nào có ID như bạn cung cấp!");
+      return;
+    }
+    const preview = this.previews[targetIdx];
+    const ctx = preview.canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, preview.canvas.width, preview.canvas.height);
+    }
+
+    preview.canvas.width = 0;
+    preview.canvas.height = 0;
+
+    this.previews.splice(targetIdx, 1);
+  }
   // ------------ HELPER FUNCTION ------------
+  /**
+  * Tải và trả về một đối tượng `HTMLImageElement` từ một `Blob`.
+  * 
+  * @param blob - Đối tượng `Blob` chứa dữ liệu hình ảnh.
+  * @returns Một `Promise` sẽ hoàn thành với `HTMLImageElement` đã được tải xong .
+  *
+  */
   private loadImage(blob: Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
